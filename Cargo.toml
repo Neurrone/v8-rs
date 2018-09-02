@@ -1,0 +1,20 @@
+cargo-features = ["edition"]
+[package]
+name = "v8"
+authors = ["David Flemström <david.flemstrom@gmail.com>", "Dickson Tan <neurrone@users.noreply.github.com>"]
+description = "High-level bindings to V8, the Javascript engine"
+keywords = ["v8", "javascript", "js", "ecmascript", "google",]
+license = "Apache-2.0"
+repository = "https://github.com/neurrone/v8-rs"
+edition = '2018'
+version = "0.1.0"
+
+[dependencies]
+lazy_static = "1.1.0"
+v8-sys = {path = "v8-sys", version = "0.1.0" }
+
+[features]
+bindgen = ["v8-sys/bindgen"]
+
+[workspace]
+members = ["v8-sys"]

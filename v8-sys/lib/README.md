@@ -1,0 +1,1 @@
+You can place static libraries for linking here.

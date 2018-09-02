@@ -1,0 +1,26 @@
+cargo-features = ["edition"]
+[package]
+name = "v8-sys"
+authors = ["David Flemström <david.flemstrom@gmail.com>", "Dickson Tan <neurrone@users.noreply.github.com>"]
+description = "Low-level bindings to V8, the Javascript engine"
+build = "build.rs"
+edition = '2018'
+keywords = ["v8", "javascript", "js", "ecmascript", "google"]
+license = "Apache-2.0"
+repository = "https://github.com/neurrone/v8-rs/tree/master/v8-sys"
+version = "0.1.0"
+
+[lib]
+name = "v8_sys"
+crate-type = ["lib"]
+
+#[build-dependencies]
+#cc = "1.0.23"
+
+[build-dependencies.bindgen]
+version = "0.39.0"
+optional = true
+
+[features]
+default = []
+use-bindgen = ["bindgen"]
