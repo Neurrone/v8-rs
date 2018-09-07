@@ -5,7 +5,6 @@ use v8_sys::{v8, v8::platform};
 
 fn main() {
     unsafe {
-        // let startup_data_dir = CString::new("D:/documents/dev/enigma-deps/v8-rs/target/debug/").unwrap();
         let startup_data_dir = CString::new("./").unwrap();
         v8::V8_InitializeExternalStartupData(startup_data_dir.as_ptr());
         let p: *mut v8::TracingController = ptr::null_mut();
