@@ -1,23 +1,26 @@
-use v8_sys::v8;
+use super::isolate;
 use std::convert;
 use std::marker;
 use std::mem;
 use std::ops;
 use std::ptr;
-use super::isolate;
+use v8_sys::v8;
 
 #[derive(Debug)]
-pub struct Scope<'i>(pub v8::HandleScope, pub marker::PhantomData<&'i isolate::Isolate>);
+pub struct Scope<'i>(
+    pub v8::HandleScope,
+    pub marker::PhantomData<&'i isolate::Isolate>,
+);
 
 #[derive(Debug, Copy, Clone)]
 pub struct Local<'i, 's, A>(v8::Local<A>, marker::PhantomData<&'s Scope<'i>>)
-    where
-        'i: 's;
+where
+    'i: 's;
 
 #[derive(Debug, Copy, Clone)]
 pub struct MaybeLocal<'i, 's, A>(v8::MaybeLocal<A>, marker::PhantomData<&'s Scope<'i>>)
-    where
-        'i: 's;
+where
+    'i: 's;
 
 /*
 #[derive(Debug, Copy, Clone)]

@@ -4910,6 +4910,12 @@ pub mod root {
             ) -> root::v8::Local<root::v8::Symbol>;
         }
         extern "C" {
+            #[link_name = "\u{1}?GetAsyncIterator@Symbol@v8@@SA?AV?$Local@VSymbol@v8@@@2@PEAVIsolate@2@@Z"]
+            pub fn Symbol_GetAsyncIterator(
+                isolate: *mut root::v8::Isolate,
+            ) -> root::v8::Local<root::v8::Symbol>;
+        }
+        extern "C" {
             #[link_name = "\u{1}?GetHasInstance@Symbol@v8@@SA?AV?$Local@VSymbol@v8@@@2@PEAVIsolate@2@@Z"]
             pub fn Symbol_GetHasInstance(
                 isolate: *mut root::v8::Isolate,
@@ -4994,6 +5000,12 @@ pub mod root {
                 name: root::v8::Local<root::v8::String>,
             ) -> root::v8::Local<root::v8::Symbol> {
                 Symbol_ForApi(isolate, name)
+            }
+            #[inline]
+            pub unsafe fn GetAsyncIterator(
+                isolate: *mut root::v8::Isolate,
+            ) -> root::v8::Local<root::v8::Symbol> {
+                Symbol_GetAsyncIterator(isolate)
             }
             #[inline]
             pub unsafe fn GetHasInstance(

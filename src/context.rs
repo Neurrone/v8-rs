@@ -1,7 +1,7 @@
 //! Execution contexts and sandboxing.
-use v8_sys::v8;
-use std::ptr;
 use super::{handle, isolate};
+use std::ptr;
+use v8_sys::v8;
 // use value;
 
 /// A sandboxed execution context with its own set of built-in objects and functions.
@@ -15,24 +15,19 @@ pub struct Scope<'c>(&'c mut Context);
 impl Context {
     /// Creates a new context and returns a handle to the newly allocated context.
     pub fn new<'i, 's>(
-        _scope: &'s handle::Scope,
-        isolate: &'i isolate::Isolate,
+        // _scope: &'s handle::Scope,
+        isolate: &'i isolate::Isolate
     ) -> handle::Local<'i, 's, Context> {
         unsafe {
+            println!("in context::new()");
             let cb = v8::DeserializeInternalFieldsCallback {
-                    callback: None, 
-                    data : ptr::null_mut()
-                };
+                callback: None,
+                data: ptr::null_mut(),
+            };
+            println!("callback created");
             let h = handle::MaybeLocal::empty().into_raw();
-            println!("{:#?}", cb);
-            let c = v8::Context::New(
-                isolate.as_ptr(),
-                ptr::null_mut(),
-                h,
-                // handle::MaybeLocal::empty().into_raw(),
-                handle::MaybeLocal::empty().into_raw(),
-                cb
-            );
+            let i = handle::MaybeLocal::empty().into_raw();
+            let c = v8::Context::New(isolate.as_ptr(), ptr::null_mut(), h, i, cb);
             println!("About to return local handle");
             handle::Local::new(c)
         }
@@ -48,7 +43,7 @@ impl Context {
         Scope(self)
     }
 
-/*
+    /*
     /// Returns the global proxy object.
     ///
     /// Global proxy object is a thin wrapper whose prototype points to actual context's global
@@ -65,7 +60,6 @@ impl Context {
     }
     */
 }
-
 
 impl<'c> Scope<'c> {
     pub fn context(&self) -> &Context {

@@ -1,4 +1,3 @@
-// #![feature(uniform_paths)]
 //! A high-level wrapper around the [V8 Javascript engine][1].
 //!
 //!

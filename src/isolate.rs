@@ -2,10 +2,10 @@
 //!
 //! # Usage
 //!
-//! Construct a new isolate with default settings by doing `Isolate::new()`. 
+//! Construct a new isolate with default settings by doing `Isolate::new()`.
 //!
 
-use ::std::{ffi::CString, mem, ptr, sync};
+use std::{ffi::CString, ptr, sync};
 use v8_sys::{v8, v8::platform};
 
 static INITIALIZE: sync::Once = sync::ONCE_INIT;
@@ -25,17 +25,35 @@ impl Isolate {
     /// Creates a new isolate.
     pub fn new() -> Isolate {
         ensure_initialized();
-        let mut raw = unsafe {
-            let mut params: v8::Isolate_CreateParams = mem::zeroed();
-            params.allow_atomics_wait = true;
-            // TODO: store this and free it when program exits
-            let allocator = v8::ArrayBuffer_Allocator::NewDefaultAllocator();
-            params.array_buffer_allocator = allocator;
+        let raw = unsafe {
+            // let mut params: v8::Isolate_CreateParams = mem::zeroed();
+            let params = v8::Isolate_CreateParams {
+                entry_hook: None,
+                code_event_handler: None,
+                constraints: v8::ResourceConstraints {
+                    max_semi_space_size_in_kb_: 0,
+                    max_old_space_size_: 0,
+                    max_executable_size_: 0,
+                    stack_limit_: ptr::null_mut(),
+                    code_range_size_: 0,
+                    max_zone_pool_size_: 0,
+                },
+                snapshot_blob: ptr::null_mut(),
+                counter_lookup_callback: None,
+                create_histogram_callback: None,
+                add_histogram_sample_callback: None,
+                external_references: ptr::null_mut(),
+                only_terminate_in_safe_scope: false,
+                allow_atomics_wait: true,
+                array_buffer_allocator: v8::ArrayBuffer_Allocator::NewDefaultAllocator(),
+            };
             ptr::NonNull::new(v8::Isolate::New(&params)).expect("Could not create Isolate")
         };
+        /*
         unsafe {
             raw.as_mut().SetCaptureStackTraceForUncaughtExceptions(true, 1024, v8::StackTrace_StackTraceOptions_kDetailed);
         }
+        */
         Isolate(raw)
     }
 
@@ -44,11 +62,15 @@ impl Isolate {
         Scope(self)
     }
 
+    pub fn enter(&mut self) {
+        unsafe { self.0.as_mut().Enter() };
+    }
+
     /// Returns the underlying raw pointer behind this isolate.
     pub fn as_ptr(&self) -> *mut v8::Isolate {
         self.0.as_ptr()
     }
-    
+
     /*
     /// Returns the context bound to the current thread for this isolate.
     ///
@@ -100,21 +122,23 @@ impl<'i> Drop for Scope<'i> {
     }
 }
 
-
 fn ensure_initialized() {
     INITIALIZE.call_once(|| {
         unsafe {
-            v8::V8_InitializeICU(ptr::null());
+            // v8::V8_InitializeICUDefaultLocation(ptr::null());
+            // let startup_data_dir = CString::new("D:/documents/dev/enigma-deps/v8-rs/target/debug/").unwrap();
             let startup_data_dir = CString::new("./").unwrap();
             v8::V8_InitializeExternalStartupData(startup_data_dir.as_ptr());
-            // let p : *const u64 = ptr::null();
-            let p : *mut v8::TracingController = ptr::null_mut();
-            let platform = platform::CreateDefaultPlatform(0, platform::IdleTaskSupport_kDisabled, platform::InProcessStackDumping_kDisabled, p);
+            let platform = platform::CreateDefaultPlatform(
+                0,
+                platform::IdleTaskSupport_kDisabled,
+                platform::InProcessStackDumping_kDisabled,
+                ptr::null_mut(),
+            );
             v8::V8_InitializePlatform(platform);
             // TODO: implement some form of cleanup
-            // mem::forget(platform);
-
             v8::V8_Initialize();
+            println!("Initialized");
         }
     });
 }

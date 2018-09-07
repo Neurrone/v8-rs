@@ -3,27 +3,41 @@
 #[cfg(feature = "bindgen")]
 extern crate bindgen;
 use std::path::PathBuf;
-use std::{ fs, env };
+use std::{env, fs};
 
 fn main() {
-    let v8_libs_dir = env::var("V8_LIBS")
-        .unwrap_or_else(|_| {
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
+    let v8_libs_dir = env::var("V8_LIBS").unwrap_or_else(|_| {
+        PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
             .join("lib")
-            .to_string_lossy().to_string()
-        });
-    let mut libs = vec!["inspector", "v8_base_0", "v8_base_1", "v8_external_snapshot", "v8_init", "v8_initializers", "v8_libbase", "v8_libplatform", "v8_libsampler", "v8_nosnapshot", "v8_snapshot"];
+            .to_string_lossy()
+            .to_string()
+    });
+    let mut libs = vec![
+        "inspector",
+        "v8_base_0",
+        "v8_base_1",
+        "v8_external_snapshot",
+        "v8_init",
+        "v8_initializers",
+        "v8_libbase",
+        "v8_libplatform",
+        "v8_libsampler",
+    ];
+    // let mut libs = vec!["inspector", "v8_base_0", "v8_base_1", "v8_init", "v8_initializers", "v8_libbase", "v8_libplatform", "v8_libsampler", "v8_nosnapshot", "libcmtd", "torque_base", "torque_generated_initializers"];
     if cfg!(windows) {
+        // V8 also requires these
         libs.push("dbghelp");
         libs.push("shlwapi");
         libs.push("winmm");
+        // temporarily link to the MSVC debug multithreaded CRT to debug context crashing
+        libs.push("libcmtd");
     }
-    // let libs = ["v8.dll", "v8_libbase.dll", "v8_libplatform.dll"];
+
     for l in &libs {
         println!("cargo:rustc-link-lib=dylib={}", l);
     }
     println!("cargo:rustc-link-search={}", v8_libs_dir);
-/*    
+    /*    
     cc::Build::new()
         .cpp(true)
         .warnings(true)
@@ -34,12 +48,15 @@ fn main() {
         .compile("librust-v8-impls.a");
     
     // println!("cargo:rustc-link-lib=dylib=librust-v8-impls.a");
-  */  
-    #[cfg(feature = "bindgen")] {
+    */
+
+    #[cfg(feature = "bindgen")]
+    {
         generate_bindings();
     }
-    
-    #[cfg(not(feature = "bindgen"))] {
+
+    #[cfg(not(feature = "bindgen"))]
+    {
         copy_pregenerated_bindings();
     }
 }
@@ -77,16 +94,20 @@ fn generate_bindings() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("unable to write bindings file");
-    
+
     let crate_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    fs::copy(out_path.join("bindings.rs"), crate_path.join("pregenerated_bindings.rs"))
-        .expect("Couldn't find generated bindings!");
+    fs::copy(
+        out_path.join("bindings.rs"),
+        crate_path.join("pregenerated_bindings.rs"),
+    ).expect("Couldn't find generated bindings!");
 }
 
 #[cfg(not(feature = "bindgen"))]
 fn copy_pregenerated_bindings() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let crate_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    fs::copy(crate_path.join("pregenerated_bindings.rs"), out_path.join("bindings.rs"))
-        .expect("Couldn't find pregenerated bindings!");
+    fs::copy(
+        crate_path.join("pregenerated_bindings.rs"),
+        out_path.join("bindings.rs"),
+    ).expect("Couldn't find pregenerated bindings!");
 }
